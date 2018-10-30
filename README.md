@@ -1,6 +1,6 @@
 # Data-Analysis
 
-#These files are each one method analyzing skewed data that doesn't fit easily into a parameteric method.
+These files are each one method analyzing skewed data that doesn't fit easily into a parameteric method.
 #They are:
 #1. Hinkley Method: Used to find the optimum power transformation.
 #2. Letter Values: Used to understand the distribtion of outliers. Each letter value is the nth, 2^n outer median.
