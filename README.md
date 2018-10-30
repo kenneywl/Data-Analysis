@@ -5,5 +5,5 @@ They are:
 1. Hinkley Method: Used to find the optimum power transformation for symmetery.
 2. Letter Values: Used to understand the distribtion of outliers. Each letter value is the nth, 2^n outer median.
 3. Spread vs Level: Used to find the optimal transformation when there is an increase of decrease in spread by level.
-4. Ureda Method: Used this to find the optimal power transformation for symmetery by using the letter value function.
+4. Ureda Method: Use this to find the optimal power transformation for symmetery by using the letter value function.
 5. Three Group Method: In work...
