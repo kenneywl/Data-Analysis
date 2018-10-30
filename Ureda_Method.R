@@ -4,6 +4,8 @@
 #I set it by default to 26, which will make the letter.value function
 #compute all the letter values for a reasonably sized dataset.
 
+#Use this to find the optimal power trandformation for symmetery when there are outliers.
+
 ureda.method <- function(x,nletters = 26){
   letters <- letter.values(x,fiveNsum = F, nletters)
   
