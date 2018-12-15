@@ -3,11 +3,13 @@ ThreeGroup <- function(x, y, pl = T, tol = -1, max_iter = 500,
   
   #x and y are bivarate "paired" data.
   
-  #There are four basic modes. 
-  # output = c("standard", "diagnostic","residual","trans","safe")
+  #There are five basic modes. 
+  # output = c("standard", "coeff", diagnostic","residual",
+  #             "trans","safe")
   #"standard" just gives the line equation with a graph. "diagnostic" returns a
   #df with some information about each iteration, and
   #"residuals", gives the residuals of each iteration in a list.
+  #"coeff" only returns a vector with the coeffecients. (for looped analysises)
   #"trans" gives a plot of the vector from the hypythetical
   #median to the actual median to get an idea of what transformation to make.
   #and it outputs that trans vector.
@@ -32,6 +34,16 @@ ThreeGroup <- function(x, y, pl = T, tol = -1, max_iter = 500,
   
   #############################
   #This setup is common to all of them.
+  #Lets remove na's
+  
+  nax <- !is.na(x)
+  x <- x[nax]
+  y <- y[nax]
+  
+  nay <- !is.na(y)
+  y <- y[nay]
+  x <- x[nay]
+  
   #We have to use the order function
   #instead of the sort function bc x and y
   #are bivariate. we lose that connection
@@ -43,7 +55,6 @@ ThreeGroup <- function(x, y, pl = T, tol = -1, max_iter = 500,
   ord <- order(x,decreasing = F) #decreasing = F makes it sort lowest to higest.
   x <- x[ord] #the x's sorted
   y <- y[ord] #this is the y's sorted by the order of the x's
-  
   
   #The following figures out where to put the
   #extra points when the number of points is not
@@ -71,7 +82,7 @@ ThreeGroup <- function(x, y, pl = T, tol = -1, max_iter = 500,
   
   r <- y #It is usually a good idea to keep your original data unmodified.
   
-  if(output == "standard"){
+  if(output == "standard" | output == "coeff"){
     Updated_Slope <- 0
     Updated_Level <- 0
     Slope_Adjustment <- 0
@@ -100,7 +111,7 @@ ThreeGroup <- function(x, y, pl = T, tol = -1, max_iter = 500,
                        abs(round(Updated_Slope,4)),"x"),collapse="")
     
     ###We graph and print a cute little verbal output.
-    if(pl == T){
+    if(pl == T & output == "standard"){
       plot(x,y,main="Three Group Method for Bivariate Data: Linear Approximation")
       points(c(xm1,xm2,xm3),
              c(median(y[1:ind1],na.rm=T),
@@ -121,7 +132,7 @@ ThreeGroup <- function(x, y, pl = T, tol = -1, max_iter = 500,
              lwd = c(NA,2),
              col = c("blue","red"))
     }
-    if(print_out == T){
+    if(print_out == T & output == "standard"){
       iter_resp <- "This was accomplished in"
       if(iter == max_iter){
         iter_out <- paste(c(iter_resp," max iterations: ",max_iter,"\n",
@@ -138,6 +149,12 @@ ThreeGroup <- function(x, y, pl = T, tol = -1, max_iter = 500,
           "It uses the x and y medians of each group to make a linear approximation.\n",
           "The three medians are:",three_med,"\n",
           "The linear approximation for this data is:", lineeq,"\n",iter_out)
+    }
+    
+    if(output == "coeff"){
+      out <- c(Updated_Level,Updated_Slope)
+      attr(out,"names") <- c("Level","Slope")
+      return(out)
     }
   }
   if(output == "diagnostic"){
@@ -277,7 +294,7 @@ ThreeGroup <- function(x, y, pl = T, tol = -1, max_iter = 500,
     
     iter2 <- iter #lets hand off the iter value but start a new counter.
     tol_set <- tol
-    while((abs(Slope_Adjustment[iter2]) > tol_set & (iter+iter2) <= max_iter) | iter2 == iter){
+    while((iter2 <= max_iter) | (iter2 == iter)){
       rl <- y[1:ind1]-Updated_Slope[iter2-1]*x[1:ind1]
       rr <- y[(ind2+1):n]-Updated_Slope[iter2-1]*x[(ind2+1):n]
       
@@ -288,18 +305,19 @@ ThreeGroup <- function(x, y, pl = T, tol = -1, max_iter = 500,
       
       delta_b1 <- median(rr)-median(rl)
       
-      Slope_Adjustment <- c(Slope_Adjustment,
-                            -delta_b1*(Updated_Slope[iter2]-Updated_Slope[iter2-1])/(delta_b1-delta_b0))
-      
-      Updated_Slope <- c(Updated_Slope, 
-                         Updated_Slope[iter2] + Slope_Adjustment[iter2+1])
-      
-      Updated_Level <- c(Updated_Level, median(y-Updated_Slope[iter2+1]*x))
-      
-      #And if tol is set to adaptive, we go until it reaches less than .01 of
-      #updated slope.
-      
       if(tol == -1){tol_set <- Updated_Slope[iter2] * .01}
+      
+      #break if change in delta is less than tol_set.
+      if((delta_b1 - delta_b0) >= tol_set){
+        Slope_Adjustment <- c(Slope_Adjustment,
+                              -delta_b1*(Updated_Slope[iter2]-Updated_Slope[iter2-1])/(delta_b1-delta_b0))
+      
+        Updated_Slope <- c(Updated_Slope, 
+                          Updated_Slope[iter2] + Slope_Adjustment[iter2+1])
+      
+        Updated_Level <- c(Updated_Level, median(y-Updated_Slope[iter2+1]*x))
+      } else { break }
+      
       iter2 <- iter2 + 1
     }
     
@@ -343,7 +361,7 @@ ThreeGroup <- function(x, y, pl = T, tol = -1, max_iter = 500,
         iter_out <- paste0(c(iter_resp," max iterations: ",max_iter,"\n",
                              "If this method didn't converge there is a bug in the program.\n"),collapse = "")
       } else {
-        iter_out <- paste0(c(iter_resp,iter,"iterations. \n"),collapes = "")
+        iter_out <- paste0(c(iter_resp,iter-2,"iterations. \n"),collapes = "")
       }
       
       three_med <- paste0(paste0("(",round(c(xm1,xm2,xm3),4)),",",
