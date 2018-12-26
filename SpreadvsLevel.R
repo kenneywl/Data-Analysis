@@ -9,8 +9,11 @@
 
 SvL <- function(x, index, pl = T){
   
-  x_medians <- by(x,index,median)
-  x_IQR <- by(x,index,IQR)
+  x_medians <- by(x,index,median,na.rm=T)
+  x_IQR <- by(x,index,IQR,na.rm=T)
+  
+  x_medians <- x_medians[!is.na(x_medians)]
+  x_IQR <- x_IQR[!is.na(x_IQR)]
   
   translate <- c("No translation was performed due to all positive medians.")
   if(sum(x_medians <= 0) > 1){
