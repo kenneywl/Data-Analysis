@@ -7,18 +7,10 @@
 #If there were any negative medians, a translation of
 #x+abs(min(x)) + 1 was done so that logs could be taken.
 
-SvL <- function(x, bycol = T, pl = T){
+SvL <- function(x, index, pl = T){
   
-  if(bycol == F){
-    x <- t(x)
-  }
-  
-  x_medians <- NULL
-  x_IQR <- NULL
-  for(i in 1:ncol(x)){
-    x_medians <- c(x_medians,median(x[,i],na.rm=T))
-    x_IQR <- c(x_IQR,IQR(x[,i],na.rm=T))
-  }
+  x_medians <- by(x,index,median)
+  x_IQR <- by(x,index,IQR)
   
   translate <- c("No translation was performed due to all positive medians.")
   if(sum(x_medians <= 0) > 1){
